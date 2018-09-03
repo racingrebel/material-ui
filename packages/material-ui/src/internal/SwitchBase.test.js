@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import { assert } from 'chai';
 import { spy } from 'sinon';
@@ -48,6 +46,7 @@ describe('<SwitchBase />', () => {
   let classes;
   let SwitchBaseNaked;
   const defaultProps = {
+    type: 'checkbox',
     icon: <h1>h1</h1>,
     checkedIcon: <h2>h2</h2>,
   };
@@ -256,37 +255,37 @@ describe('<SwitchBase />', () => {
     };
 
     it('should call onChange exactly once with event', () => {
-      const onChangeSpy = spy();
+      const handleChange = spy();
       const wrapper = mount(
-        <SwitchBaseNaked {...defaultProps} classes={{}} onChange={onChangeSpy} />,
+        <SwitchBaseNaked {...defaultProps} classes={{}} onChange={handleChange} />,
       );
       const instance = wrapper.instance();
       instance.handleInputChange(event);
 
-      assert.strictEqual(onChangeSpy.callCount, 1);
-      assert.strictEqual(onChangeSpy.calledWith(event), true);
+      assert.strictEqual(handleChange.callCount, 1);
+      assert.strictEqual(handleChange.calledWith(event), true);
 
-      onChangeSpy.resetHistory();
+      handleChange.resetHistory();
     });
 
     describe('controlled', () => {
       it('should call onChange once', () => {
         const checked = true;
-        const onChangeSpy = spy();
+        const handleChange = spy();
         const wrapper = mount(
           <SwitchBaseNaked
             {...defaultProps}
             classes={{}}
             checked={checked}
-            onChange={onChangeSpy}
+            onChange={handleChange}
           />,
         );
         const instance = wrapper.instance();
         instance.handleInputChange(event);
 
-        assert.strictEqual(onChangeSpy.callCount, 1);
+        assert.strictEqual(handleChange.callCount, 1);
         assert.strictEqual(
-          onChangeSpy.calledWith(event, !checked),
+          handleChange.calledWith(event, !checked),
           true,
           'call onChange with event and !props.checked',
         );
@@ -296,11 +295,11 @@ describe('<SwitchBase />', () => {
     describe('not controlled no input', () => {
       let checkedMock;
       let wrapper;
-      let onChangeSpy;
+      let handleChange;
 
       before(() => {
-        onChangeSpy = spy();
-        wrapper = mount(<SwitchBaseNaked {...defaultProps} classes={{}} onChange={onChangeSpy} />);
+        handleChange = spy();
+        wrapper = mount(<SwitchBaseNaked {...defaultProps} classes={{}} onChange={handleChange} />);
         checkedMock = true;
         const instance = wrapper.instance();
         wrapper.setState({ checked: checkedMock });
@@ -308,11 +307,11 @@ describe('<SwitchBase />', () => {
       });
 
       it('should call onChange exactly once', () => {
-        assert.strictEqual(onChangeSpy.callCount, 1);
+        assert.strictEqual(handleChange.callCount, 1);
       });
 
       it('should call onChange with right params', () => {
-        assert.strictEqual(onChangeSpy.calledWith(event, !checkedMock), true);
+        assert.strictEqual(handleChange.calledWith(event, !checkedMock), true);
       });
 
       it('should change state.checked !checkedMock', () => {
@@ -385,6 +384,46 @@ describe('<SwitchBase />', () => {
         wrapper.setProps({ disabled: false });
         assert.strictEqual(wrapper.hasClass(classes.disabled), false);
       });
+    });
+  });
+
+  describe('prop: onFocus', () => {
+    it('should work', () => {
+      const handleFocusProps = spy();
+      const handleFocusContext = spy();
+      const wrapper = mount(
+        <SwitchBaseNaked {...defaultProps} classes={{}} onFocus={handleFocusProps} />,
+        {
+          context: {
+            muiFormControl: {
+              onFocus: handleFocusContext,
+            },
+          },
+        },
+      );
+      wrapper.find('input').simulate('focus');
+      assert.strictEqual(handleFocusProps.callCount, 1);
+      assert.strictEqual(handleFocusContext.callCount, 1);
+    });
+  });
+
+  describe('prop: onBlur', () => {
+    it('should work', () => {
+      const handleFocusProps = spy();
+      const handleFocusContext = spy();
+      const wrapper = mount(
+        <SwitchBaseNaked {...defaultProps} classes={{}} onBlur={handleFocusProps} />,
+        {
+          context: {
+            muiFormControl: {
+              onBlur: handleFocusContext,
+            },
+          },
+        },
+      );
+      wrapper.find('input').simulate('blur');
+      assert.strictEqual(handleFocusProps.callCount, 1);
+      assert.strictEqual(handleFocusContext.callCount, 1);
     });
   });
 });

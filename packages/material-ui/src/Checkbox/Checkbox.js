@@ -1,4 +1,7 @@
+/* eslint-disable react/jsx-handler-names */
+
 import React from 'react';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import SwitchBase from '../internal/SwitchBase';
@@ -9,11 +12,15 @@ import { capitalize } from '../utils/helpers';
 import withStyles from '../styles/withStyles';
 
 export const styles = theme => ({
+  /* Styles applied to the root element. */
   root: {
     color: theme.palette.text.secondary,
   },
+  /* Styles applied to the root element if `checked={true}`. */
   checked: {},
+  /* Styles applied to the root element if `disabled={true}`. */
   disabled: {},
+  /* Styles applied to the root element if `color="primary"`. */
   colorPrimary: {
     '&$checked': {
       color: theme.palette.primary.main,
@@ -22,6 +29,7 @@ export const styles = theme => ({
       color: theme.palette.action.disabled,
     },
   },
+  /* Styles applied to the root element if `color="secondary"`. */
   colorSecondary: {
     '&$checked': {
       color: theme.palette.secondary.main,
@@ -32,21 +40,53 @@ export const styles = theme => ({
   },
 });
 
-function Checkbox(props) {
-  const { checkedIcon, classes, color, icon, indeterminate, indeterminateIcon, ...other } = props;
+class Checkbox extends React.Component {
+  componentDidMount = () => {
+    this.updateIndeterminateStatus();
+  };
 
-  return (
-    <SwitchBase
-      checkedIcon={indeterminate ? indeterminateIcon : checkedIcon}
-      classes={{
-        root: classNames(classes.root, classes[`color${capitalize(color)}`]),
-        checked: classes.checked,
-        disabled: classes.disabled,
-      }}
-      icon={indeterminate ? indeterminateIcon : icon}
-      {...other}
-    />
-  );
+  componentDidUpdate = prevProps => {
+    if (prevProps.indeterminate !== this.props.indeterminate) {
+      this.updateIndeterminateStatus();
+    }
+  };
+
+  updateIndeterminateStatus = () => {
+    if (this.inputRef) {
+      this.inputRef.indeterminate = this.props.indeterminate;
+    }
+  };
+
+  handleInputRef = ref => {
+    this.inputRef = ReactDOM.findDOMNode(ref);
+  };
+
+  render() {
+    const {
+      checkedIcon,
+      classes,
+      color,
+      icon,
+      indeterminate,
+      indeterminateIcon,
+      ...other
+    } = this.props;
+
+    return (
+      <SwitchBase
+        type="checkbox"
+        checkedIcon={indeterminate ? indeterminateIcon : checkedIcon}
+        classes={{
+          root: classNames(classes.root, classes[`color${capitalize(color)}`]),
+          checked: classes.checked,
+          disabled: classes.disabled,
+        }}
+        icon={indeterminate ? indeterminateIcon : icon}
+        inputRef={this.handleInputRef}
+        {...other}
+      />
+    );
+  }
 }
 
 Checkbox.propTypes = {
@@ -98,7 +138,7 @@ Checkbox.propTypes = {
   /**
    * Use that property to pass a ref callback to the native input component.
    */
-  inputRef: PropTypes.func,
+  inputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
   /**
    * Callback fired when the state is changed.
    *

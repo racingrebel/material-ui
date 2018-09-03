@@ -3,27 +3,52 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import ReactDOM from 'react-dom';
 import keycode from 'keycode';
+import warning from 'warning';
 import { withStyles } from '@material-ui/core/styles';
 import Zoom from '@material-ui/core/Zoom';
 import { duration } from '@material-ui/core/styles/transitions';
 import Button from '@material-ui/core/Button';
 import { isMuiElement } from '@material-ui/core/utils/reactHelpers';
 
-const styles = theme => ({
+export const styles = {
+  /* Styles applied to the root element. */
   root: {
     zIndex: 1050,
     display: 'flex',
-    flexDirection: 'column-reverse', // Place the Actions above the FAB.
+    pointerEvents: 'none',
   },
+  /* Styles applied to the Button component. */
+  fab: {
+    pointerEvents: 'auto',
+  },
+  /* Styles applied to the root and action container elements when direction="up" */
+  directionUp: {
+    flexDirection: 'column-reverse',
+  },
+  /* Styles applied to the root and action container elements when direction="down" */
+  directionDown: {
+    flexDirection: 'column',
+  },
+  /* Styles applied to the root and action container elements when direction="left" */
+  directionLeft: {
+    flexDirection: 'row-reverse',
+  },
+  /* Styles applied to the root and action container elements when direction="right" */
+  directionRight: {
+    flexDirection: 'row',
+  },
+  /* Styles applied to the actions (`children` wrapper) element. */
   actions: {
     display: 'flex',
-    flexDirection: 'column-reverse', // Display the first action at the bottom.
-    marginBottom: theme.spacing.unit * 2,
+    paddingBottom: 16,
+    pointerEvents: 'auto',
   },
+  /* Styles applied to the actions (`children` wrapper) element if `open={false}`. */
   actionsClosed: {
     transition: 'top 0s linear 0.2s',
+    pointerEvents: 'none',
   },
-});
+};
 
 class SpeedDial extends React.Component {
   state = {
@@ -32,8 +57,8 @@ class SpeedDial extends React.Component {
   };
 
   handleKeyDown = event => {
-    const actions = ReactDOM.findDOMNode(this.actions);
-    const fab = ReactDOM.findDOMNode(this.fab);
+    const actions = ReactDOM.findDOMNode(this.actionsRef);
+    const fab = ReactDOM.findDOMNode(this.fabRef);
     const key = keycode(event);
     const currentFocus = document.activeElement;
     const { open, onClose, onKeyDown } = this.props;
@@ -50,8 +75,9 @@ class SpeedDial extends React.Component {
         actions.firstChild.firstChild.focus();
 
         // This determines which key focuses the next / previous action.
-        // For example, if a visually impaired user presses down to select the first action
-        // (i.e. following DOM ordering), down will select the next action, and up the previous.
+        // For example, if a user presses down to select the first action
+        // (i.e. following DOM ordering rather than visual ordering),
+        // down will select the next action, and up the previous.
         if (nextKey == null) {
           this.setState({ nextKey: key });
           this.setState({ prevKey: key === 'up' ? 'down' : 'up' });
@@ -63,7 +89,7 @@ class SpeedDial extends React.Component {
       if (currentFocus.parentElement.previousElementSibling) {
         currentFocus.parentElement.previousElementSibling.firstChild.focus();
       } else {
-        ReactDOM.findDOMNode(this.fab).focus();
+        fab.focus();
       }
       // Select the next action
     } else if (key === nextKey) {
@@ -97,6 +123,7 @@ class SpeedDial extends React.Component {
       onClose,
       onKeyDown,
       open,
+      direction,
       openIcon,
       TransitionComponent,
       transitionDuration,
@@ -114,7 +141,18 @@ class SpeedDial extends React.Component {
 
     let validChildCount = 0;
     const children = React.Children.map(childrenProp, child => {
-      if (!React.isValidElement(child)) return null;
+      if (!React.isValidElement(child)) {
+        return null;
+      }
+
+      warning(
+        child.type !== React.Fragment,
+        [
+          "Material-UI: the SpeedDial component doesn't accept a Fragment as a child.",
+          'Consider providing an array instead.',
+        ].join('\n'),
+      );
+
       const delay = 30 * (open ? validChildCount : totalValidChildren - validChildCount);
       validChildCount += 1;
       return React.cloneElement(child, {
@@ -135,8 +173,15 @@ class SpeedDial extends React.Component {
       return icon;
     };
 
+    const actionsPlacementClass = {
+      [classes.directionUp]: direction === 'up',
+      [classes.directionDown]: direction === 'down',
+      [classes.directionLeft]: direction === 'left',
+      [classes.directionRight]: direction === 'right',
+    };
+
     return (
-      <div className={classNames(classes.root, classNameProp)} {...other}>
+      <div className={classNames(classes.root, actionsPlacementClass, classNameProp)} {...other}>
         <TransitionComponent
           in={!hidden}
           timeout={transitionDuration}
@@ -152,10 +197,10 @@ class SpeedDial extends React.Component {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : 'false'}
             aria-controls={`${id}-actions`}
-            ref={node => {
-              this.fab = node;
+            ref={ref => {
+              this.fabRef = ref;
             }}
-            data-mui-test="SpeedDial"
+            className={classes.fab}
             {...ButtonProps}
           >
             {icon()}
@@ -163,9 +208,13 @@ class SpeedDial extends React.Component {
         </TransitionComponent>
         <div
           id={`${id}-actions`}
-          className={classNames(classes.actions, { [classes.actionsClosed]: !open })}
-          ref={node => {
-            this.actions = node;
+          className={classNames(
+            classes.actions,
+            { [classes.actionsClosed]: !open },
+            actionsPlacementClass,
+          )}
+          ref={ref => {
+            this.actionsRef = ref;
           }}
         >
           {children}
@@ -182,7 +231,7 @@ SpeedDial.propTypes = {
    */
   ariaLabel: PropTypes.string.isRequired,
   /**
-   * Properties applied to the `Button` element.
+   * Properties applied to the [`Button`](/api/button) element.
    */
   ButtonProps: PropTypes.object,
   /**
@@ -190,13 +239,18 @@ SpeedDial.propTypes = {
    */
   children: PropTypes.node.isRequired,
   /**
-   * Useful to extend the style applied to components.
+   * Override or extend the styles applied to the component.
+   * See [CSS API](#css-api) below for more details.
    */
   classes: PropTypes.object.isRequired,
   /**
    * @ignore
    */
   className: PropTypes.string,
+  /**
+   * The direction the actions open relative to the floating action button.
+   */
+  direction: PropTypes.oneOf(['up', 'down', 'left', 'right']),
   /**
    * If `true`, the SpeedDial will be hidden.
    */
@@ -249,6 +303,7 @@ SpeedDial.propTypes = {
 
 SpeedDial.defaultProps = {
   hidden: false,
+  direction: 'up',
   TransitionComponent: Zoom,
   transitionDuration: {
     enter: duration.enteringScreen,
@@ -256,4 +311,4 @@ SpeedDial.defaultProps = {
   },
 };
 
-export default withStyles(styles)(SpeedDial);
+export default withStyles(styles, { name: 'MuiSpeedDial' })(SpeedDial);

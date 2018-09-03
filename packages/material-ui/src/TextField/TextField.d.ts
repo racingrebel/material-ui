@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { StandardProps, PropTypes } from '..';
-import { FormControlProps } from '../FormControl';
+import { FormControlClassKey, FormControlProps } from '../FormControl';
 import { FormHelperTextProps } from '../FormHelperText';
 import { InputProps } from '../Input';
 import { InputLabelProps } from '../InputLabel';
-import { FormControlClassKey } from '../FormControl';
 import { SelectProps } from '../Select';
 
 export interface TextFieldProps
@@ -22,12 +21,12 @@ export interface TextFieldProps
   InputLabelProps?: Partial<InputLabelProps>;
   InputProps?: Partial<InputProps>;
   inputProps?: InputProps['inputProps'];
-  inputRef?: React.Ref<any>;
+  inputRef?: React.Ref<any> | React.RefObject<any>;
   label?: React.ReactNode;
   margin?: PropTypes.Margin;
   multiline?: boolean;
   name?: string;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
   placeholder?: string;
   required?: boolean;
   rows?: string | number;
@@ -35,7 +34,7 @@ export interface TextFieldProps
   select?: boolean;
   SelectProps?: Partial<SelectProps>;
   type?: string;
-  value?: Array<string | number> | string | number;
+  value?: Array<string | number | boolean> | string | number | boolean;
 }
 
 export type TextFieldClassKey = FormControlClassKey;

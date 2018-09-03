@@ -1,14 +1,14 @@
 ---
-components: MobileStepper, Step, StepButton, StepContent, StepIcon, StepLabel, Stepper
+title: Stepper React component
+components: MobileStepper, Step, StepButton, StepConnector, StepContent, StepIcon, StepLabel, Stepper
 ---
 
 # Steppers
 
-[Steppers](https://material.io/archive/guidelines/components/steppers.html) convey progress through numbered steps.
+<p class="description">Steppers convey progress through numbered steps.</p>
 
-> Steppers display progress through a sequence of logical and numbered steps. They may also be used for navigation.
->
-> Steppers may display a transient feedback message after a step is saved.
+[Steppers](https://material.io/archive/guidelines/components/steppers.html) display progress through a sequence of logical and numbered steps. They may also be used for navigation.
+Steppers may display a transient feedback message after a step is saved.
 
 **Types of Steps**
 
@@ -75,7 +75,7 @@ You must implement the textual description yourself, however, an example is prov
 
 ### Mobile Stepper - Text with Carousel effect
 
-This demo is very similar to the previous, the difference is the usage of 
+This demo is very similar to the previous, the difference is the usage of
 [react-swipeable-views](https://github.com/oliviertassinari/react-swipeable-views) to make the transition of steps.
 
 {{"demo": "pages/demos/steppers/SwipeableTextMobileStepper.js"}}

@@ -1,27 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
-import withTheme from '@material-ui/core/styles/withTheme';
+import { withStyles } from '@material-ui/core/styles';
 
 const styles = {
   root: {
     width: '100%',
     maxWidth: 500,
   },
-  light: {
-    background:
-      'transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAICAIAAAC3eAIWAAAAEklEQVR4AWP4fvkRw69fv3BhAG+IFy/ne6sFAAAAAElFTkSuQmCC)', // eslint-disable-line max-len
-  },
 };
 
 function Types(props) {
+  const { classes } = props;
+
   return (
-    <div
-      style={{
-        ...styles.root,
-        ...(props.theme.palette.type === 'light' ? styles.light : {}),
-      }}
-    >
+    <div className={classes.root}>
       <Typography variant="display4" gutterBottom>
         Display 4
       </Typography>
@@ -66,7 +59,7 @@ function Types(props) {
 }
 
 Types.propTypes = {
-  theme: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired,
 };
 
-export default withTheme()(Types);
+export default withStyles(styles)(Types);

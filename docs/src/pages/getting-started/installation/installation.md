@@ -1,5 +1,7 @@
 # Installation
 
+<p class="description">Install Material-UI, the world's most popular React UI framework.</p>
+
 Material-UI is available as an [npm package](https://www.npmjs.com/package/@material-ui/core).
 
 ## npm
@@ -9,6 +11,8 @@ To install and save in your `package.json` dependencies, run:
 ```sh
 npm install @material-ui/core
 ```
+
+Please note that [react](https://www.npmjs.com/package/react) >= 16.3.0 and [react-dom](https://www.npmjs.com/package/react-dom) >= 16.3.0 are peer dependencies.
 
 ## Roboto Font
 
@@ -37,3 +41,18 @@ you must first install the [@material-ui/icons](https://www.npmjs.com/package@ma
 ```sh
 npm install @material-ui/icons
 ```
+
+## CDN
+
+You can start using Material-UI with minimal Front-end infrastructure,
+which is great for prototyping. We discourage using this approach in production though -
+the client has to download the entire library, regardless of which components are actually used,
+affecting performance and bandwidth utilisation.
+
+#### UMD releases
+
+We are providing two Universal Module Definition (UMD) files:
+- one for development: https://unpkg.com/@material-ui/core/umd/material-ui.development.js
+- one for production: https://unpkg.com/@material-ui/core/umd/material-ui.production.min.js
+
+You can follow [this CDN example](https://github.com/mui-org/material-ui/tree/master/examples/cdn) to quickly get started.

@@ -1,5 +1,3 @@
-// @flow
-
 import { assert } from 'chai';
 import createPalette from './createPalette';
 import createTypography from './createTypography';
@@ -44,5 +42,26 @@ describe('createTypography', () => {
     const customFontSize = '18px';
     const typography = createTypography(palette, { display4: { fontSize: customFontSize } });
     assert.strictEqual(typography.display4.fontSize, customFontSize);
+  });
+
+  it('should apply a CSS property to all the variants', () => {
+    const typography = createTypography(palette, { allVariants: { marginLeft: 0 } });
+    const allVariants = [
+      'display4',
+      'display3',
+      'display2',
+      'display1',
+      'headline',
+      'title',
+      'subheading',
+      'body2',
+      'body1',
+      'caption',
+      'button',
+    ];
+
+    allVariants.forEach(variant => {
+      assert.strictEqual(typography[variant].marginLeft, 0);
+    });
   });
 });

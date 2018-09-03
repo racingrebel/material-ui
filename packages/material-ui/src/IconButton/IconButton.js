@@ -9,6 +9,7 @@ import ButtonBase from '../ButtonBase';
 import { capitalize } from '../utils/helpers';
 
 export const styles = theme => ({
+  /* Styles applied to the root element. */
   root: {
     textAlign: 'center',
     flex: '0 0 auto',
@@ -17,6 +18,7 @@ export const styles = theme => ({
     height: 48,
     padding: 0,
     borderRadius: '50%',
+    overflow: 'visible', // Explicitly set the default value to solve a bug on IE11.
     color: theme.palette.action.active,
     transition: theme.transitions.create('background-color', {
       duration: theme.transitions.duration.shortest,
@@ -35,9 +37,11 @@ export const styles = theme => ({
       color: theme.palette.action.disabled,
     },
   },
+  /* Styles applied to the root element if `color="inherit"`. */
   colorInherit: {
     color: 'inherit',
   },
+  /* Styles applied to the root element if `color="primary"`. */
   colorPrimary: {
     color: theme.palette.primary.main,
     '&:hover': {
@@ -48,6 +52,7 @@ export const styles = theme => ({
       },
     },
   },
+  /* Styles applied to the root element if `color="secondary"`. */
   colorSecondary: {
     color: theme.palette.secondary.main,
     '&:hover': {
@@ -58,7 +63,9 @@ export const styles = theme => ({
       },
     },
   },
+  /* Styles applied to the root element if `disabled={true}`. */
   disabled: {},
+  /* Styles applied to the children container element. */
   label: {
     width: '100%',
     display: 'flex',

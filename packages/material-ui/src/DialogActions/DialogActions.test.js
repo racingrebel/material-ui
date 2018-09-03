@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import { assert } from 'chai';
 import { createShallow, getClasses } from '../test-utils';
@@ -37,7 +35,9 @@ describe('<DialogActions />', () => {
   it('should render children with the button class wrapped in a div with the action class', () => {
     const wrapper = shallow(
       <DialogActions>
-        <button className="woofDialogActions">Hello</button>
+        <button type="submit" className="woofDialogActions">
+          Hello
+        </button>
       </DialogActions>,
     );
     const button = wrapper.childAt(0);
@@ -50,8 +50,12 @@ describe('<DialogActions />', () => {
     const showButton = true;
     const wrapper = shallow(
       <DialogActions>
-        {showButton ? <button className="woofDialogActions">Hello</button> : null}
-        {!showButton ? <button>false button</button> : null}
+        {showButton ? (
+          <button type="submit" className="woofDialogActions">
+            Hello
+          </button>
+        ) : null}
+        {!showButton ? <button type="submit">false button</button> : null}
       </DialogActions>,
     );
 

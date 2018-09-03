@@ -64,6 +64,7 @@ import { SnackbarClassKey } from '../Snackbar';
 import { SnackbarContentClassKey } from '../SnackbarContent';
 import { StepButtonClasskey } from '../StepButton';
 import { StepClasskey } from '../Step';
+import { StepConnectorClasskey } from '../StepConnector';
 import { StepContentClasskey } from '../StepContent';
 import { StepIconClasskey } from '../StepIcon';
 import { StepLabelClasskey } from '../StepLabel';
@@ -91,7 +92,7 @@ export type Overrides = {
   [Name in keyof ComponentNameToClassKey]?: Partial<StyleRules<ComponentNameToClassKey[Name]>>
 };
 
-type ComponentNameToClassKey = {
+export interface ComponentNameToClassKey {
   MuiAppBar: AppBarClassKey;
   MuiAvatar: AvatarClassKey;
   MuiBackdrop: BackdropClassKey;
@@ -156,6 +157,7 @@ type ComponentNameToClassKey = {
   MuiSnackbarContent: SnackbarContentClassKey;
   MuiStep: StepClasskey;
   MuiStepButton: StepButtonClasskey;
+  MuiStepConnector: StepConnectorClasskey;
   MuiStepContent: StepContentClasskey;
   MuiStepIcon: StepIconClasskey;
   MuiStepLabel: StepLabelClasskey;
@@ -165,6 +167,7 @@ type ComponentNameToClassKey = {
   MuiSwitchBase: SwitchBaseClassKey;
   MuiTab: TabClassKey;
   MuiTable: TableClassKey;
+  MuiTableBody: TableBodyClassKey;
   MuiTableCell: TableCellClassKey;
   MuiTablePagination: TablePaginationClassKey;
   MuiTableRow: TableRowClassKey;
@@ -174,4 +177,4 @@ type ComponentNameToClassKey = {
   MuiTooltip: TooltipClassKey;
   MuiTouchRipple: TouchRippleClassKey;
   MuiTypography: TypographyClassKey;
-};
+}

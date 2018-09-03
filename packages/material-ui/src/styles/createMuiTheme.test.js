@@ -1,5 +1,3 @@
-// @flow
-
 import { assert } from 'chai';
 import createMuiTheme from './createMuiTheme';
 import { deepOrange, green } from '../colors';
@@ -76,6 +74,9 @@ describe('createMuiTheme', () => {
         },
         MuiButtonBase: {
           disableRipple: true,
+        },
+        MuiPopover: {
+          container: document.createElement('div'),
         },
       };
       const muiTheme = createMuiTheme({ props });

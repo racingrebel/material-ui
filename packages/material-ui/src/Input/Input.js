@@ -3,41 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import withStyles from '../styles/withStyles';
 import Textarea from './Textarea';
-
-// Supports determination of isControlled().
-// Controlled input accepts its current value as a prop.
-//
-// @see https://facebook.github.io/react/docs/forms.html#controlled-components
-// @param value
-// @returns {boolean} true if string (including '') or number (including zero)
-export function hasValue(value) {
-  return value != null && !(Array.isArray(value) && value.length === 0);
-}
-
-// Determine if field is empty or filled.
-// Response determines if label is presented above field or as placeholder.
-//
-// @param obj
-// @param SSR
-// @returns {boolean} False when not present or empty string.
-//                    True when any number or string with length.
-export function isFilled(obj, SSR = false) {
-  return (
-    obj &&
-    ((hasValue(obj.value) && obj.value !== '') ||
-      (SSR && hasValue(obj.defaultValue) && obj.defaultValue !== ''))
-  );
-}
-
-// Determine if an Input is adorned on start.
-// It's corresponding to the left with LTR.
-//
-// @param obj
-// @returns {boolean} False when no adornments.
-//                    True when adorned at the start.
-export function isAdornedStart(obj) {
-  return obj.startAdornment;
-}
+import { isFilled } from './utils';
 
 export const styles = theme => {
   const light = theme.palette.type === 'light';
@@ -57,25 +23,30 @@ export const styles = theme => {
   const bottomLineColor = light ? 'rgba(0, 0, 0, 0.42)' : 'rgba(255, 255, 255, 0.7)';
 
   return {
+    /* Styles applied to the root element. */
     root: {
       // Mimics the default input display property used by browsers for an input.
       display: 'inline-flex',
       position: 'relative',
       fontFamily: theme.typography.fontFamily,
-      color: light ? 'rgba(0, 0, 0, 0.87)' : theme.palette.common.white,
+      color: theme.palette.text.primary,
       fontSize: theme.typography.pxToRem(16),
       lineHeight: '1.1875em', // Reset (19px), match the native input line-height
       '&$disabled': {
         color: theme.palette.text.disabled,
       },
     },
+    /* Styles applied to the root element if the component is a descendant of `FormControl`. */
     formControl: {
       'label + &': {
-        marginTop: theme.spacing.unit * 2,
+        marginTop: 16,
       },
     },
+    /* Styles applied to the root element if the component is focused. */
     focused: {},
+    /* Styles applied to the root element if `disabled={true}`. */
     disabled: {},
+    /* Styles applied to the root element if `disableUnderline={false}`. */
     underline: {
       '&:after': {
         borderBottom: `2px solid ${theme.palette.primary[light ? 'dark' : 'light']}`,
@@ -104,8 +75,7 @@ export const styles = theme => {
         left: 0,
         bottom: 0,
         // Doing the other way around crash on IE11 "''" https://github.com/cssinjs/jss/issues/242
-        content: '"need text here to prevent subpixel zoom issue"',
-        color: 'transparent',
+        content: '"\\00a0"',
         position: 'absolute',
         right: 0,
         transition: theme.transitions.create('border-bottom-color', {
@@ -120,17 +90,21 @@ export const styles = theme => {
         borderBottom: `1px dotted ${bottomLineColor}`,
       },
     },
+    /* Styles applied to the root element if `error={true}`. */
     error: {},
+    /* Styles applied to the root element if `multiline={true}`. */
     multiline: {
-      padding: `${theme.spacing.unit - 2}px 0 ${theme.spacing.unit - 1}px`,
+      padding: `${8 - 2}px 0 ${8 - 1}px`,
     },
+    /* Styles applied to the root element if `fullWidth={true}`. */
     fullWidth: {
       width: '100%',
     },
+    /* Styles applied to the `input` element. */
     input: {
       font: 'inherit',
       color: 'currentColor',
-      padding: `${theme.spacing.unit - 2}px 0 ${theme.spacing.unit - 1}px`,
+      padding: `${8 - 2}px 0 ${8 - 1}px`,
       border: 0,
       boxSizing: 'content-box',
       verticalAlign: 'middle',
@@ -172,17 +146,21 @@ export const styles = theme => {
         opacity: 1, // Reset iOS opacity
       },
     },
+    /* Styles applied to the `input` element if `margin="dense"`. */
     inputMarginDense: {
-      paddingTop: theme.spacing.unit / 2 - 1,
+      paddingTop: 4 - 1,
     },
+    /* Styles applied to the `input` element if `multiline={true}`. */
     inputMultiline: {
       resize: 'none',
       padding: 0,
     },
+    /* Styles applied to the `input` element if `type` is not "text"`. */
     inputType: {
       // type="date" or type="time", etc. have specific styles we need to reset.
       height: '1.1875em', // Reset (19px), match the native input line-height
     },
+    /* Styles applied to the `input` element if `type="search"`. */
     inputTypeSearch: {
       // Improve type search style.
       '-moz-appearance': 'textfield',
@@ -195,18 +173,20 @@ function formControlState(props, context) {
   let disabled = props.disabled;
   let error = props.error;
   let margin = props.margin;
+  let required = props.required;
 
   if (context && context.muiFormControl) {
     if (typeof disabled === 'undefined') {
       disabled = context.muiFormControl.disabled;
     }
-
     if (typeof error === 'undefined') {
       error = context.muiFormControl.error;
     }
-
     if (typeof margin === 'undefined') {
       margin = context.muiFormControl.margin;
+    }
+    if (typeof required === 'undefined') {
+      required = context.muiFormControl.required;
     }
   }
 
@@ -214,12 +194,19 @@ function formControlState(props, context) {
     disabled,
     error,
     margin,
+    required,
   };
 }
 
 class Input extends React.Component {
+  isControlled = null;
+
+  input = null; // Holds the input reference
+
   constructor(props, context) {
     super(props, context);
+
+    this.isControlled = props.value != null;
 
     if (this.isControlled) {
       this.checkDirty(props);
@@ -276,7 +263,7 @@ class Input extends React.Component {
 
   componentDidMount() {
     if (!this.isControlled) {
-      this.checkDirty(this.input);
+      this.checkDirty(this.inputRef);
     }
   }
 
@@ -286,11 +273,8 @@ class Input extends React.Component {
     } // else performed in the onChange
   }
 
-  isControlled = this.props.value != null;
-  input = null; // Holds the input reference
-
   handleFocus = event => {
-    // Fix an bug with IE11 where the focus/blur events are triggered
+    // Fix a bug with IE11 where the focus/blur events are triggered
     // while the input is disabled.
     if (formControlState(this.props, this.context).disabled) {
       event.stopPropagation();
@@ -301,6 +285,11 @@ class Input extends React.Component {
     if (this.props.onFocus) {
       this.props.onFocus(event);
     }
+
+    const { muiFormControl } = this.context;
+    if (muiFormControl && muiFormControl.onFocus) {
+      muiFormControl.onFocus(event);
+    }
   };
 
   handleBlur = event => {
@@ -308,26 +297,41 @@ class Input extends React.Component {
     if (this.props.onBlur) {
       this.props.onBlur(event);
     }
+
+    const { muiFormControl } = this.context;
+    if (muiFormControl && muiFormControl.onBlur) {
+      muiFormControl.onBlur(event);
+    }
   };
 
-  handleChange = event => {
+  handleChange = (...args) => {
     if (!this.isControlled) {
-      this.checkDirty(this.input);
+      this.checkDirty(this.inputRef);
     }
 
     // Perform in the willUpdate
     if (this.props.onChange) {
-      this.props.onChange(event);
+      this.props.onChange(...args);
     }
   };
 
-  handleRefInput = node => {
-    this.input = node;
+  handleRefInput = ref => {
+    this.inputRef = ref;
+
+    let refProp;
 
     if (this.props.inputRef) {
-      this.props.inputRef(node);
+      refProp = this.props.inputRef;
     } else if (this.props.inputProps && this.props.inputProps.ref) {
-      this.props.inputProps.ref(node);
+      refProp = this.props.inputProps.ref;
+    }
+
+    if (refProp) {
+      if (typeof refProp === 'function') {
+        refProp(ref);
+      } else {
+        refProp.current = ref;
+      }
     }
   };
 
@@ -389,7 +393,7 @@ class Input extends React.Component {
     } = this.props;
 
     const { muiFormControl } = this.context;
-    const { disabled, error, margin } = formControlState(this.props, this.context);
+    const { disabled, error, margin, required } = formControlState(this.props, this.context);
 
     const className = classNames(
       classes.root,
@@ -417,16 +421,13 @@ class Input extends React.Component {
       inputPropsClassName,
     );
 
-    const required = muiFormControl && muiFormControl.required === true;
-
-    let InputComponent = 'input';
+    let InputComponent = inputComponent;
     let inputProps = {
       ...inputPropsProp,
       ref: this.handleRefInput,
     };
 
-    if (inputComponent) {
-      InputComponent = inputComponent;
+    if (typeof InputComponent !== 'string') {
       inputProps = {
         // Rename ref to inputRef as we don't know the
         // provided `inputComponent` structure.
@@ -453,7 +454,6 @@ class Input extends React.Component {
         {startAdornment}
         <InputComponent
           aria-invalid={error}
-          aria-required={required}
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           className={inputClassName}
@@ -468,7 +468,7 @@ class Input extends React.Component {
           onKeyUp={onKeyUp}
           placeholder={placeholder}
           readOnly={readOnly}
-          required={required ? true : undefined}
+          required={required}
           rows={rows}
           type={type}
           value={value}
@@ -534,15 +534,15 @@ Input.propTypes = {
    * The component used for the native input.
    * Either a string to use a DOM element or a component.
    */
-  inputComponent: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+  inputComponent: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.object]),
   /**
-   * Properties applied to the `input` element.
+   * Attributes applied to the `input` element.
    */
   inputProps: PropTypes.object,
   /**
    * Use that property to pass a ref callback to the native input component.
    */
-  inputRef: PropTypes.func,
+  inputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
   /**
    * If `dense`, will adjust vertical spacing. This is normally obtained via context from
    * FormControl.
@@ -592,9 +592,14 @@ Input.propTypes = {
    */
   placeholder: PropTypes.string,
   /**
-   * @ignore
+   * It prevents the user from changing the value of the field
+   * (not from interacting with the field).
    */
   readOnly: PropTypes.bool,
+  /**
+   * If `true`, the input will be required.
+   */
+  required: PropTypes.bool,
   /**
    * Number of rows to display when multiline option is set to true.
    */
@@ -617,7 +622,8 @@ Input.propTypes = {
   value: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.number,
-    PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+    PropTypes.bool,
+    PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool])),
   ]),
 };
 
@@ -626,6 +632,7 @@ Input.muiName = 'Input';
 Input.defaultProps = {
   disableUnderline: false,
   fullWidth: false,
+  inputComponent: 'input',
   multiline: false,
   type: 'text',
 };

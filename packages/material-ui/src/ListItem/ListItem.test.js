@@ -34,6 +34,11 @@ describe('<ListItem />', () => {
     assert.strictEqual(wrapper.hasClass(classes.gutters), true, 'should have the gutters class');
   });
 
+  it('should render with the selected class', () => {
+    const wrapper = shallow(<ListItem selected />);
+    assert.strictEqual(wrapper.hasClass(classes.selected), true, 'should have the selected class');
+  });
+
   it('should disable the gutters', () => {
     const wrapper = shallow(<ListItem disableGutters />);
     assert.strictEqual(wrapper.hasClass(classes.root), true);
@@ -156,6 +161,17 @@ describe('<ListItem />', () => {
       );
       assert.strictEqual(wrapper.hasClass(classes.container), true);
       assert.strictEqual(wrapper.hasClass('bubu'), true);
+    });
+  });
+
+  describe('prop: focusVisibleClassName', () => {
+    it('should merge the class names', () => {
+      const wrapper = shallow(<ListItem button focusVisibleClassName="focusVisibleClassName" />);
+      assert.strictEqual(wrapper.props().component, 'div');
+      assert.strictEqual(
+        wrapper.props().focusVisibleClassName,
+        `${classes.focusVisible} focusVisibleClassName`,
+      );
     });
   });
 });
